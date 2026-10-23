@@ -47,6 +47,11 @@ target is flagged `RPKI INVALID`:
 
 ![Dark theme](docs/screenshot-dark.png)
 
+**On Windows** - the single-file `.exe` running on Windows (this screenshot is taken by the CI build
+on a Windows runner, so it is what the released file really does):
+
+![Windows](docs/screenshot-windows.png)
+
 ## Install & run (Windows 10 / 11)
 
 **Easiest - the ready-made `.exe`** (no Python needed): download `bgpwatch-<version>-windows-x64.exe`
