@@ -25,6 +25,24 @@ classic looking-glass "bgpmap" view, with alerts when the best path changes.
 Data comes from the free [RIPEstat Looking Glass API](https://stat.ripe.net/docs/data-api/api-endpoints/looking-glass)
 (RIPE RIS route collectors, hundreds of peers worldwide).
 
+## Screenshots
+
+Demo data (`./main.py --demo`), so you can reproduce them without waiting for a real BGP event.
+
+**A new best path** - blinking blue (then green), the previous path dashed grey, packets travelling
+along the new path, the RPKI result and the change written to the event log:
+
+![Path changed](docs/screenshot-path-changed.png)
+
+**Paths table** - every peer's route as NEW BEST / PREVIOUS / alternate:
+
+![Paths table](docs/screenshot-paths-table.png)
+
+**RPKI invalid** - the origin AS is not authorised by any ROA, so the origin box turns red and the
+target is flagged `RPKI INVALID`:
+
+![RPKI invalid](docs/screenshot-rpki-invalid.png)
+
 ## Install & run (Ubuntu / Debian)
 
 The window uses **ttkbootstrap** when it is installed (themes, round toggles, coloured
