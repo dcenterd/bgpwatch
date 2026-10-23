@@ -49,11 +49,14 @@ target is flagged `RPKI INVALID`:
 
 ## Install & run (Windows 10 / 11)
 
-**Easiest - the ready-made build** (no Python needed): download `bgpwatch-<version>-windows-x64.zip`
-from the [Releases](https://github.com/dcenterd/bgpwatch/releases) page, unzip it anywhere and run
-`bgpwatch.exe`. Add targets in the window, or try the simulated data first:
-`bgpwatch.exe --demo --ips 8.8.8.8,8.8.4.4,1.1.1.1 --interval 10` (from a Command Prompt or a shortcut).
-Windows SmartScreen may warn about an unsigned app: *More info → Run anyway*.
+**Easiest - the ready-made `.exe`** (no Python needed): download `bgpwatch-<version>-windows-x64.exe`
+from the [Releases](https://github.com/dcenterd/bgpwatch/releases) page and double-click it. It is a single
+self-contained file, so it opens a little slower than an installed app the first time (it unpacks itself).
+Add targets in the window, or try the simulated data first from a Command Prompt:
+`bgpwatch-<version>-windows-x64.exe --demo --ips 8.8.8.8,8.8.4.4,1.1.1.1 --interval 10`.
+Windows SmartScreen or your antivirus may warn about an unsigned app: *More info → Run anyway*. If your
+antivirus objects to the single file, use `bgpwatch-<version>-windows-x64-folder.zip` instead: unzip it and
+run `bgpwatch\bgpwatch.exe` (the same app, starts faster).
 
 **From source** - install Python 3.8+ from [python.org](https://www.python.org/downloads/) (it includes
 Tkinter; tick *Add python.exe to PATH*), then:

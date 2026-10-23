@@ -42,21 +42,27 @@ jobs:
       - name: Build bgpwatch.exe (PyInstaller)
         shell: cmd
         run: packaging\build_windows.bat
-      - name: Smoke test the exe (starts, polls, RPKI, log, screenshot)
+      - name: Smoke test the single-file exe (starts, polls, RPKI, log, screenshot)
         shell: powershell
-        run: powershell -File packaging\smoke_windows.ps1 dist\bgpwatch\bgpwatch.exe smoke
-      - name: Zip
+        run: powershell -File packaging\smoke_windows.ps1 dist\bgpwatch-onefile.exe smoke
+      - name: Smoke test the folder build
+        shell: powershell
+        run: powershell -File packaging\smoke_windows.ps1 dist\bgpwatch\bgpwatch.exe smoke-folder
+      - name: Package
         shell: bash
         run: |
           VERSION=$(python -c "import re;print(re.search(r'\"(.+?)\"', open('bgpwatch/__init__.py').read().split('__version__')[1]).group(1))")
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          mkdir out
+          cp dist/bgpwatch-onefile.exe "out/bgpwatch-$VERSION-windows-x64.exe"
           cp README.md LICENSE dist/bgpwatch/
-          powershell -Command "Compress-Archive -Path dist/bgpwatch -DestinationPath bgpwatch-$VERSION-windows-x64.zip"
+          powershell -Command "Compress-Archive -Path dist/bgpwatch -DestinationPath out/bgpwatch-$VERSION-windows-x64-folder.zip"
+          ls -la out
       - uses: actions/upload-artifact@v4
         with:
           name: bgpwatch-windows
           path: |
-            bgpwatch-*-windows-x64.zip
+            out/*
             smoke/windows.png
             smoke/logs/demo/bgpwatch.log
       - name: Attach to the release
@@ -64,4 +70,4 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" bgpwatch-*-windows-x64.zip --clobber
+        run: gh release upload "${{ github.event.release.tag_name }}" out/* --clobber

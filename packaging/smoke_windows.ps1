@@ -9,7 +9,7 @@ $logs = Join-Path (Resolve-Path $Out) "logs"
 $p = Start-Process -FilePath $Exe -PassThru -ArgumentList @(
     "--demo", "--ips", "8.8.8.8,8.8.4.4,1.1.1.1", "--interval", "5",
     "--no-restore", "--no-notify", "--log-dir", $logs)
-Start-Sleep -Seconds 25
+Start-Sleep -Seconds 30
 
 try {
     Add-Type -AssemblyName System.Windows.Forms, System.Drawing
@@ -25,7 +25,7 @@ $alive = -not $p.HasExited
 if ($alive) { Stop-Process -Id $p.Id -Force }
 $log = Join-Path $logs "demo\bgpwatch.log"
 $text = if (Test-Path $log) { Get-Content $log -Raw } else { "" }
-Write-Host "still running after 25 s: $alive"
+Write-Host "still running after 30 s: $alive"
 Write-Host "log file: $log ($($text.Length) bytes)"
 
 $bad = @()
