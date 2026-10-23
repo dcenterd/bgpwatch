@@ -61,8 +61,11 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: bgpwatch-windows
+          path: out/*
+      - uses: actions/upload-artifact@v4          # small: the screenshot and log of the smoke test
+        with:
+          name: windows-smoke
           path: |
-            out/*
             smoke/windows.png
             smoke/logs/demo/bgpwatch.log
       - name: Attach to the release

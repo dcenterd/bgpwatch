@@ -89,9 +89,10 @@ class BGPWatchApp:
         self._poll_pause = monitor.pause_between
 
         root.title("BGP LookingGlass" + ("  [DEMO DATA]" if demo else ""))
-        sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()   # small laptop screens
-        root.geometry(f"{min(1280, sw - 20)}x{min(820, sh - 90)}")
-        root.minsize(min(900, sw - 20), min(600, sh - 90))
+        sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()   # small laptop screens: leave
+        w, h = min(1280, sw - 20), min(820, sh - 150)                  # room for the taskbar + title bar
+        root.geometry(f"{w}x{h}" + ("+10+10" if (w, h) != (1280, 820) else ""))
+        root.minsize(min(900, w), min(600, h))
         self._fonts()
         self._style()
         self._build_toolbar()
