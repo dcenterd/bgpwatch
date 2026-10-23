@@ -1,0 +1,5 @@
+# One IP address or prefix per line. Lines starting with # are ignored.
+8.8.8.8          # Google DNS
+1.1.1.1          # Cloudflare DNS
+9.9.9.9          # Quad9
+2001:4860:4860::8888

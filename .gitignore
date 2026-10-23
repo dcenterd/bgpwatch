@@ -1,0 +1,15 @@
+# local environment / runtime data
+.venv/
+__pycache__/
+*.pyc
+logs/
+
+# personal files
+.claude/
+/Logo.jpeg
+/*_????-??-??_????.svg
+
+# editor / OS
+.idea/
+.vscode/
+.DS_Store
