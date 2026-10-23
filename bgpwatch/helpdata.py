@@ -248,6 +248,10 @@ PARAMS = [
     ("Window: top rows", "Fit, +, -", "-", "buttons", "Zoom the map (also Ctrl+wheel; drag to pan)."),
     ("Window: top rows", "Theme", "bootstrap-light", "30 themes, half of them dark",
      "Window colours (light and dark). Saved between sessions."),
+    ("Window: top rows", "🌙 Dark", "off (follows the theme)", "on | off",
+     "Switch between the dark and light twin of the current theme (nord-light <-> nord-dark). "
+     "It follows the Theme dropdown and is saved with it. Without ttkbootstrap it flips the built-in "
+     "dark/light palette instead."),
     ("Window: event log", "show alternate-path churn", "off", "on | off",
      "Also list updates of paths that are not the best path."),
     ("Window: event log", "mute alert sound", "off", "on | off", "Silence the beeps for every target."),

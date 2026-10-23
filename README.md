@@ -17,7 +17,7 @@ classic looking-glass "bgpmap" view, with alerts when the best path changes.
   pass through, max length) raise a `RULE-VIOLATION` alert when the best path breaks them
 - **History**: every change is stored with a snapshot, shown as a timeline;
   select an event to redraw the map as it was
-- Three-beep alert sound (global mute and per-target mute), dark theme,
+- Three-beep alert sound (global mute and per-target mute), dark/light switch,
   targets/rules remembered between sessions
 - A router icon in the system tray (lamp colour = alert state; menu: show/hide, check now, quit; `--no-tray` to disable)
 - Python + Tkinter. Optional [ttkbootstrap](https://ttkbootstrap.rdbende.dev/) gives a modern themed UI (see below); no Graphviz.
@@ -42,6 +42,10 @@ along the new path, the RPKI result and the change written to the event log:
 target is flagged `RPKI INVALID`:
 
 ![RPKI invalid](docs/screenshot-rpki-invalid.png)
+
+**Dark mode** - the **🌙 Dark** switch (top right) flips the theme to its dark twin:
+
+![Dark theme](docs/screenshot-dark.png)
 
 ## Install & run (Ubuntu / Debian)
 
@@ -114,9 +118,10 @@ command line use `--mode peer --vantage RRC00/193.0.0.56`.
   shows `streams live · updates · last update`. Not available in `--demo`.
   Very unstable prefixes can flap many times a minute - use `--confirm N` to
   require a new path to hold for N checks before alerting.
-- **Theme** (top right: 30 themes, half of them dark). **Save list…** writes the targets to a text
-  file that **Load file…** can read back. Targets, rules, mutes and the theme
-  are restored on the next start (`--no-restore` to skip).
+- **Theme** (top right): 30 themes, half of them dark. The **🌙 Dark** switch next to it flips the
+  current theme to its dark or light twin (e.g. `nord-light` ↔ `nord-dark`).
+- **Save list…** writes the targets to a text file that **Load file…** can read back. Targets, rules,
+  mutes and the theme are restored on the next start (`--no-restore` to skip).
 - `--minimized` starts the window minimised.
 
 ### Help

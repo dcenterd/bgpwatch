@@ -46,6 +46,15 @@ DARK = dict(bg="#26282b", panel="#1e1f22", fg="#e2e2e2", dim="#9a9a9a", field="#
             sel="#3d5a80", canvas="#1b1c1f", log="#17181a", legend="#cfcfcf")
 
 
+def counterpart_theme(name: str, names) -> str:
+    """The light variant of a dark ttkbootstrap theme and vice versa (the themes come in pairs):
+    'nord-dark' <-> 'nord-light'. Returns `name` when there is no counterpart."""
+    for a, b in (("-dark", "-light"), ("-light", "-dark")):
+        if name.endswith(a) and name[:-len(a)] + b in names:
+            return name[:-len(a)] + b
+    return name
+
+
 class BGPWatchApp:
     POLL_MS = 150
 
@@ -89,7 +98,7 @@ class BGPWatchApp:
         root.bind("<F1>", lambda e: self._help())
         root.after(self.POLL_MS, self._drain_queue)
         self.v_mute.set(bool(self.settings.data.get("mute_all")))
-        self.v_dark.set(bool(self.settings.data.get("dark")))
+        self.v_dark.set(self._is_dark() if self.tb else bool(self.settings.data.get("dark")))
         self.v_mute.trace_add("write", lambda *a: self._save_settings())
         self._apply_theme()
         if demo:
@@ -181,6 +190,8 @@ class BGPWatchApp:
             cb.pack(side="right")
             cb.bind("<<ComboboxSelected>>", lambda e: self._pick_theme())
             ttk.Label(head, text="Theme:").pack(side="right", padx=(14, 4))
+            ttk.Checkbutton(head, text="🌙 Dark", variable=self.v_dark, command=self._toggle_dark,
+                            **self._bs("round-toggle")).pack(side="right", padx=(0, 14))
         else:
             ttk.Checkbutton(head, text="🌙 dark", variable=self.v_dark,
                             command=self._toggle_dark).pack(side="right")
@@ -201,7 +212,7 @@ class BGPWatchApp:
         ttk.Button(bar, text="↻ Check now", command=self.monitor.check_now, **self._bs("info-outline")).pack(side="left", padx=4)
         ttk.Button(bar, text="✔ Acknowledge", command=self._ack, **self._bs("warning-outline")).pack(side="left")
         self.l_status = ttk.Label(head, text="Stopped", foreground="#666")
-        self.l_status.pack(side="right")
+        self.l_status.pack(side="right", padx=(0, 12))
 
         bar2 = ttk.Frame(self.root, padding=(8, 2, 8, 6))
         bar2.pack(fill="x")
@@ -1065,12 +1076,24 @@ class BGPWatchApp:
 
     # ------------------------------------------------------------- dark theme
     def _toggle_dark(self):
+        """Dark / light switch. With ttkbootstrap it jumps to the other variant of the current
+        theme (nord-light <-> nord-dark); on plain Tk it flips the built-in palette."""
+        if self.tb:
+            if self.v_dark.get() != self._is_dark():
+                cur = self.root.style.theme.name
+                other = counterpart_theme(cur, set(self.root.style.theme_names()))
+                if other == cur:                      # a theme without a pair
+                    other = "bootstrap-dark" if self.v_dark.get() else "bootstrap-light"
+                self.v_theme.set(other)
+                self._pick_theme()
+            return
         self._apply_theme()
         self._save_settings()
         self._redraw()
 
     def _pick_theme(self):
         self.root.style.theme_use(self.v_theme.get())
+        self.v_dark.set(self._is_dark())              # keep the switch in step with the dropdown
         self._apply_theme()
         self._save_settings()
         self._redraw()
@@ -1135,6 +1158,10 @@ class BGPWatchApp:
         for tag, light, dk in (("alert", "#b31d1d", "#ff7b7b"), ("error", "#8a5a00", "#e8b85a"),
                                ("info", "#777777", "#a0a0a0"), ("first", "#1d5a28", "#6fd48a")):
             self.t_log.tag_configure(tag, foreground=dk if dark else light)
+        # target list: bright text on a dark background; the "changed" row keeps its pale-blue band
+        for s, dk in (("ok", "#6fd48a"), ("pending", "#cfcfcf"), ("error", "#e8b85a"),
+                      ("violation", "#ff8a8a"), ("rpki", "#ff8a8a")):
+            self.tv_targets.tag_configure(s, foreground=dk if dark else HEADER_FG[s])
         self.tl_canvas.configure(bg=pal["panel"])
         self.l_status.configure(foreground=pal["dim"])
         self.root.option_add("*TCombobox*Listbox.background", pal["field"])
