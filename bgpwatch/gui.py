@@ -89,8 +89,9 @@ class BGPWatchApp:
         self._poll_pause = monitor.pause_between
 
         root.title("BGP LookingGlass" + ("  [DEMO DATA]" if demo else ""))
-        root.geometry("1280x820")
-        root.minsize(900, 600)
+        sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()   # small laptop screens
+        root.geometry(f"{min(1280, sw - 20)}x{min(820, sh - 90)}")
+        root.minsize(min(900, sw - 20), min(600, sh - 90))
         self._fonts()
         self._style()
         self._build_toolbar()
@@ -213,8 +214,11 @@ class BGPWatchApp:
         self.b_run.pack(side="left")
         ttk.Button(bar, text="↻ Check now", command=self.monitor.check_now, **self._bs("info-outline")).pack(side="left", padx=4)
         ttk.Button(bar, text="✔ Acknowledge", command=self._ack, **self._bs("warning-outline")).pack(side="left")
-        self.l_status = ttk.Label(head, text="Stopped", foreground="#666")
-        self.l_status.pack(side="right", padx=(0, 12))
+        # status bar along the bottom: poll status on the left, live-feed state on the right
+        statusbar = ttk.Frame(self.root, padding=(10, 2, 10, 4))
+        statusbar.pack(side="bottom", fill="x")
+        self.l_status = ttk.Label(statusbar, text="Stopped", foreground="#666")
+        self.l_status.pack(side="left")
 
         bar2 = ttk.Frame(self.root, padding=(8, 2, 8, 6))
         bar2.pack(fill="x")
@@ -263,8 +267,8 @@ class BGPWatchApp:
         self.cb_live = ttk.Checkbutton(bar2, text="⚡ Live feed", variable=self.v_live,
                                        command=self._toggle_live, **self._bs("round-toggle"))
         self.cb_live.pack(side="left", padx=(14, 4))
-        self.l_live = ttk.Label(head, text="", foreground="#2e7d32")
-        self.l_live.pack(side="right", padx=(0, 14))
+        self.l_live = ttk.Label(statusbar, text="", foreground="#2e7d32")
+        self.l_live.pack(side="right")
         ttk.Button(bar2, text="Fit", width=4, command=self._fit, **self._bs("secondary-outline")).pack(side="right", padx=2)
         ttk.Button(bar2, text="−", width=3, command=lambda: self._zoom_by(1 / 1.2), **self._bs("secondary-outline")).pack(side="right")
         ttk.Button(bar2, text="+", width=3, command=lambda: self._zoom_by(1.2), **self._bs("secondary-outline")).pack(side="right")
