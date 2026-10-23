@@ -37,6 +37,8 @@ MODULE_INFO = {
     "rpki": ("rpki.py", "RPKI origin validation: asks RIPEstat whether a signed ROA authorises the "
              "origin AS of the best path for its prefix (valid / invalid / not found), with a cache. "
              "DemoRpki simulates it offline."),
+    "osutil": ("osutil.py", "Windows / Linux differences in one place: where logs, history and the AS-name "
+               "cache live, the virtualenv interpreter, a fixed-width font, safe console output."),
     "tray": ("tray.py", "The system-tray router icon (optional pystray): draws the icon, colours its "
              "lamp by alert state and sends menu clicks to the GUI through the queue."),
     "asnames": ("asnames.py", "Turns AS numbers into holder names (via RIPEstat), cached on disk."),
@@ -56,7 +58,7 @@ EXTERNAL_INFO = {
 
 # order used for the matrix rows/columns (readers first, foundations last)
 ORDER = ["main", "gui", "helpview", "helpdata", "dialogs", "alerts", "engine", "live", "collectors",
-         "store", "rules", "layout", "theme", "sound", "tray", "rpki", "asnames", "targets", "models"]
+         "store", "rules", "layout", "theme", "sound", "tray", "osutil", "rpki", "asnames", "targets", "models"]
 
 
 def import_matrix() -> tuple:
@@ -120,6 +122,7 @@ BOXES = {
     "store":        (230, 590, 170, 56, "store.py", "history · settings", "out"),
     "sound":        (430, 590, 140, 56, "sound.py", "3-beep alert", "out"),
     "tray":         (600, 624, 130, 50, "tray.py", "router tray icon", "ui"),
+    "osutil":       (790, 444, 145, 50, "osutil.py", "Windows / Linux paths", "core"),
     "ext_disk":     (80, 690, 200, 50, "Disk", "logs · history.db · settings", "ext"),
     "ext_desktop":  (330, 690, 200, 50, "Desktop", "notifications · speakers", "ext"),
     "models":       (640, 690, 430, 56, "models.py", "Route · PathEvent · TargetView — shared by every module", "data"),
@@ -149,6 +152,7 @@ EDGES = [
     ("gui", "alerts", "handle(event)", False),
     ("gui", "sound", "beep ×3", False),
     ("gui", "tray", "status · menu", False),
+    ("gui", "osutil", "fonts · paths", False),
     ("tray", "ext_desktop", "tray icon", False),
     ("gui", "store", "settings", False),
     ("alerts", "store", "history", False),
@@ -206,7 +210,7 @@ PARAMS = [
      "Distinct paths drawn on the map (also the 'Paths shown' box)."),
     ("Command line", "--auto-ack N", "0", "number of stable polls; 0 = off",
      "End the changed (blue) state after N stable polls. The GUI timer 'New path blue' does the same by time."),
-    ("Command line", "--log-dir DIR", "~/.local/state/bgpwatch", "path",
+    ("Command line", "--log-dir DIR", "~/.local/state/bgpwatch (Windows: %LOCALAPPDATA%\\bgpwatch)", "path",
      "Where logs, history and settings.json are written (demo mode uses a 'demo' sub-folder)."),
     ("Command line", "--no-rpki", "off (RPKI check on)", "flag",
      "Do not validate the origin AS of the best path against RPKI ROAs."),
@@ -256,8 +260,8 @@ PARAMS = [
      "Also list updates of paths that are not the best path."),
     ("Window: event log", "mute alert sound", "off", "on | off", "Silence the beeps for every target."),
     ("Window: event log", "desktop notifications", "on (off with --no-notify)", "on | off",
-     "Send a desktop pop-up (notify-send) for path changes, rule violations and RPKI invalid. "
-     "Greyed out if notify-send is not installed. The beeps, logs and history are not affected. "
+     "Send a desktop pop-up (notify-send on Linux, a tray-icon balloon on Windows) for path changes, rule "
+     "violations and RPKI invalid. Greyed out if neither is available (no notify-send / no tray icon). The beeps, logs and history are not affected. "
      "Saved between sessions."),
     ("Window: event log", "Clear", "-", "button", "Empty the event log view (files are kept)."),
     ("System tray", "router icon", "-", "click / right-click menu",
@@ -370,7 +374,8 @@ HELP = [
              "~/.local/state/bgpwatch/events.jsonl     one JSON object per event\n"
              "~/.local/state/bgpwatch/history.db       SQLite behind the History tab\n"
              "~/.local/state/bgpwatch/settings.json    targets, rules, mutes, theme\n"
-             "~/.cache/bgpwatch/asnames.json           AS number → name cache"),
+             "~/.cache/bgpwatch/asnames.json           AS number → name cache\n"
+             "Windows: %LOCALAPPDATA%\\bgpwatch\\ holds all of these (the cache in its cache\\ folder)"),
     ("h1", "Threads"),
     ("p", "Main thread: the window (Tk). Monitor thread: polling and analysis. One reader thread per "
           "target when the live feed is on. They never share Tk objects; everything crosses the "

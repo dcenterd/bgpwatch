@@ -1,4 +1,4 @@
-"""Alert sound: three beeps, played through the system audio (falls back to the Tk bell)."""
+"""Alert sound: three beeps (winsound on Windows; pw-play / paplay / aplay on Linux; else the Tk bell)."""
 from __future__ import annotations
 
 import math
@@ -8,6 +8,8 @@ import subprocess
 import tempfile
 import wave
 from pathlib import Path
+
+from . import osutil
 
 RATE = 22050
 PLAYERS = (("pw-play",), ("paplay",), ("aplay", "-q"))
@@ -38,10 +40,14 @@ def play_alert() -> bool:
     try:
         if _wav is None or not _wav.exists():
             _wav = _make_wav()
+        if osutil.IS_WINDOWS:
+            import winsound
+            winsound.PlaySound(str(_wav), winsound.SND_FILENAME | winsound.SND_ASYNC)
+            return True
         for cmd in PLAYERS:
             if shutil.which(cmd[0]):
                 subprocess.Popen([*cmd, str(_wav)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 return True
-    except OSError:
+    except (OSError, RuntimeError, ImportError):
         pass
     return False

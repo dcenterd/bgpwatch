@@ -19,10 +19,17 @@ import time
 from pathlib import Path
 
 # use the project's virtualenv (it holds ttkbootstrap) when there is one
-_VENV_PY = Path(__file__).resolve().parent / ".venv" / "bin" / "python"
-if _VENV_PY.exists() and Path(sys.prefix).resolve() != _VENV_PY.parent.parent.resolve() \
+from bgpwatch import osutil  # noqa: E402
+
+_VENV_PY = osutil.venv_python(Path(__file__).resolve().parent)
+if not getattr(sys, "frozen", False) and _VENV_PY.exists() \
+        and Path(sys.prefix).resolve() != _VENV_PY.parent.parent.resolve() \
         and not os.environ.get("BGPWATCH_NO_VENV"):
+    if osutil.IS_WINDOWS:                    # os.execv does not replace the process on Windows
+        import subprocess
+        sys.exit(subprocess.call([str(_VENV_PY), *sys.argv]))
     os.execv(str(_VENV_PY), [str(_VENV_PY), *sys.argv])
+osutil.prepare_console()
 
 from bgpwatch import __version__
 from bgpwatch.alerts import Alerter, default_log_dir
@@ -40,7 +47,7 @@ def read_targets(args) -> list:
     if args.ips:
         raw.append(args.ips)
     if args.file:
-        for line in Path(args.file).read_text().splitlines():
+        for line in Path(args.file).read_text(encoding="utf-8-sig").splitlines():
             raw.append(line.split("#")[0])
     good, bad = parse_targets(" ".join(raw))
     for b in bad:

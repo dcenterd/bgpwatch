@@ -7,6 +7,7 @@ from pathlib import Path
 from tkinter import filedialog, ttk
 
 from . import helpdata as hd
+from . import osutil
 
 
 class HelpWindow:
@@ -45,7 +46,7 @@ class HelpWindow:
                         spacing1=16, spacing3=6)
         t.tag_configure("p", lmargin1=0, lmargin2=0)
         t.tag_configure("li", lmargin1=18, lmargin2=34)
-        t.tag_configure("code", font=tkfont.Font(family="monospace", size=10), lmargin1=18, lmargin2=18,
+        t.tag_configure("code", font=tkfont.Font(family=osutil.mono_font(), size=10), lmargin1=18, lmargin2=18,
                         background=self.pal["bg"])
         for style, text in hd.HELP:
             t.insert("end", text + "\n", style)

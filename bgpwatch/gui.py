@@ -26,6 +26,7 @@ class _Ttk:
 
 ttk = _Ttk()
 
+from . import osutil
 from .asnames import short_name
 from .dialogs import edit_rules
 from .helpview import HelpWindow
@@ -117,8 +118,9 @@ class BGPWatchApp:
             if autostart:
                 self._toggle_run()
         self.tray = Tray(q)                          # router icon in the system tray
-        if tray:
-            self.tray.start()
+        if tray and self.tray.start() and osutil.IS_WINDOWS:
+            self.alerter.notifier = self.tray.notify       # Windows: balloon from the tray icon
+        self._refresh_notify_state()
         if minimized:
             root.iconify()
 
@@ -128,8 +130,8 @@ class BGPWatchApp:
         self.f_node = tkfont.Font(family=base, size=10, weight="bold")
         self.f_sub = tkfont.Font(family=base, size=8)
         self.f_head = tkfont.Font(family=base, size=12, weight="bold")
-        self.f_head2 = tkfont.Font(family="monospace", size=10)
-        self.f_mono = tkfont.Font(family="monospace", size=9)
+        self.f_head2 = tkfont.Font(family=osutil.mono_font(), size=10)
+        self.f_mono = tkfont.Font(family=osutil.mono_font(), size=9)
         self.f_legend = tkfont.Font(family=base, size=9)
         # map fonts scale with zoom, so they are separate objects
         self.m_node = tkfont.Font(family=base, size=10, weight="bold")
@@ -372,10 +374,7 @@ class BGPWatchApp:
         cb_n = ttk.Checkbutton(top, text="🔔 desktop notifications", variable=self.v_notify,
                                command=self._toggle_notify, **self._bs("round-toggle"))
         cb_n.pack(side="left", padx=10)
-        if not self.alerter.notify_cmd:                    # notify-send is not installed
-            self.v_notify.set(False)
-            self.alerter.notify_enabled = False
-            cb_n.state(["disabled"])
+        self.cb_notify = cb_n                              # enabled/disabled in _refresh_notify_state()
         ttk.Button(top, text="Clear", command=lambda: self.t_log.delete("1.0", "end"), **self._bs("secondary-outline")).pack(side="right")
         logbody = ttk.Frame(logf)
         logbody.pack(fill="both", expand=True)
@@ -435,7 +434,7 @@ class BGPWatchApp:
                                           filetypes=[("Text", "*.txt *.lst *.conf"), ("All", "*")])
         if not path:
             return
-        lines = [ln.split("#")[0] for ln in Path(path).read_text().splitlines()]
+        lines = [ln.split("#")[0] for ln in Path(path).read_text(encoding="utf-8-sig").splitlines()]
         good, bad = parse_targets(" ".join(lines))
         if bad:
             messagebox.showwarning("Skipped entries", "Ignored:\n  " + "\n  ".join(bad[:20]))
@@ -735,8 +734,17 @@ class BGPWatchApp:
                     v.rpki = v.rpki_detail = ""
             self._redraw()
 
+    def _refresh_notify_state(self):
+        """Grey the notification switch out when nothing can show one (no notify-send / no tray)."""
+        if self.alerter.can_notify:
+            self.cb_notify.state(["!disabled"])
+        else:
+            self.v_notify.set(False)
+            self.alerter.notify_enabled = False
+            self.cb_notify.state(["disabled"])
+
     def _toggle_notify(self):
-        """Desktop (notify-send) pop-ups on or off; the beeps and the logs are not affected."""
+        """Desktop pop-ups (notify-send; the tray balloon on Windows) on or off; the beeps and the logs are not affected."""
         self.alerter.notify_enabled = self.v_notify.get()
         self._save_settings()
 

@@ -88,6 +88,11 @@ class Tray:
         if self.icon.title != title:
             self.icon.title = title
 
+    def notify(self, title: str, body: str):
+        """A balloon / toast from the tray icon (used on Windows, where there is no notify-send)."""
+        if self.icon:
+            self.icon.notify(body, title)
+
     def stop(self):
         if self.icon:
             try:

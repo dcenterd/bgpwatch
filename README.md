@@ -20,7 +20,7 @@ classic looking-glass "bgpmap" view, with alerts when the best path changes.
 - Three-beep alert sound (global mute and per-target mute), dark/light switch,
   targets/rules remembered between sessions
 - A router icon in the system tray (lamp colour = alert state; menu: show/hide, check now, quit; `--no-tray` to disable)
-- Python + Tkinter. Optional [ttkbootstrap](https://ttkbootstrap.rdbende.dev/) gives a modern themed UI (see below); no Graphviz.
+- Runs on Linux and Windows. Python + Tkinter. Optional [ttkbootstrap](https://ttkbootstrap.rdbende.dev/) gives a modern themed UI (see below); no Graphviz.
 
 Data comes from the free [RIPEstat Looking Glass API](https://stat.ripe.net/docs/data-api/api-endpoints/looking-glass)
 (RIPE RIS route collectors, hundreds of peers worldwide).
@@ -46,6 +46,31 @@ target is flagged `RPKI INVALID`:
 **Dark mode** - the **🌙 Dark** switch (top right) flips the theme to its dark twin:
 
 ![Dark theme](docs/screenshot-dark.png)
+
+## Install & run (Windows 10 / 11)
+
+**Easiest - the ready-made build** (no Python needed): download `bgpwatch-<version>-windows-x64.zip`
+from the [Releases](https://github.com/dcenterd/bgpwatch/releases) page, unzip it anywhere and run
+`bgpwatch.exe`. Add targets in the window, or try the simulated data first:
+`bgpwatch.exe --demo --ips 8.8.8.8,8.8.4.4,1.1.1.1 --interval 10` (from a Command Prompt or a shortcut).
+Windows SmartScreen may warn about an unsigned app: *More info → Run anyway*.
+
+**From source** - install Python 3.8+ from [python.org](https://www.python.org/downloads/) (it includes
+Tkinter; tick *Add python.exe to PATH*), then:
+
+```bat
+git clone https://github.com/dcenterd/bgpwatch.git
+cd bgpwatch
+run_windows.bat
+```
+
+`run_windows.bat` creates a `.venv` and installs the packages on the first run, then starts the app
+without a console window. Extra options go after it: `run_windows.bat --demo --ips 8.8.8.8`.
+
+On Windows the alert sound uses the built-in `winsound`, desktop notifications are balloons from the
+**system-tray icon** (so they need the tray icon, i.e. not `--no-tray`), and files live in
+`%LOCALAPPDATA%\bgpwatch\` (logs, history, settings; AS-name cache in `cache\`). To build the `.exe`
+yourself: `packaging\build_windows.bat`.
 
 ## Install & run (Ubuntu / Debian)
 
@@ -149,7 +174,7 @@ changed: possible hijack/misorigination), `BEST-LOST` (the vantage peer has
 no route any more), `BEST-RESTORED`, `ALT-CHANGED` (non-best paths, log file
 only unless enabled), `FETCH-ERROR`.
 
-Files (default `~/.local/state/bgpwatch/`):
+Files (default `~/.local/state/bgpwatch/`, on Windows `%LOCALAPPDATA%\bgpwatch\`):
 
 - `bgpwatch.log` - the same text as the console, rotated at 5 MB × 5
 - `history.db` - SQLite history behind the History tab (demo mode uses a `demo/` subfolder)
@@ -157,7 +182,7 @@ Files (default `~/.local/state/bgpwatch/`):
 - `events.jsonl` - one JSON object per event, easy to `jq` or feed to Grafana/Loki
 
 Path-change alerts also raise a desktop notification via `notify-send`
-(disable with `--no-notify`). AS names are cached in `~/.cache/bgpwatch/asnames.json`.
+(disable with `--no-notify`). AS names are cached in `~/.cache/bgpwatch/asnames.json` (`cache\asnames.json` in the same Windows folder).
 
 ## Options
 

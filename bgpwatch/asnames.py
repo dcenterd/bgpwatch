@@ -1,4 +1,4 @@
-"""AS number -> holder name, cached on disk (~/.cache/bgpwatch/asnames.json)."""
+"""AS number -> holder name, cached on disk (~/.cache/bgpwatch/asnames.json, %LOCALAPPDATA%\\bgpwatch\\cache on Windows)."""
 from __future__ import annotations
 
 import json
@@ -6,6 +6,7 @@ import os
 import threading
 from pathlib import Path
 
+from . import osutil
 from .collectors import CollectorError, http_get_json
 
 BUILTIN = {
@@ -33,13 +34,12 @@ class ASNames:
 
     def __init__(self, cache_file: Path | None = None, online: bool = True):
         self.online = online
-        self.cache_file = cache_file or Path(
-            os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "bgpwatch" / "asnames.json"
+        self.cache_file = cache_file or osutil.cache_dir() / "asnames.json"
         self._lock = threading.Lock()
         self._names: dict = {str(k): v for k, v in BUILTIN.items()}
         self._failed: set = set()
         try:
-            self._names.update(json.loads(self.cache_file.read_text()))
+            self._names.update(json.loads(self.cache_file.read_text(encoding="utf-8")))
         except (OSError, ValueError):
             pass
 
@@ -74,6 +74,7 @@ class ASNames:
         try:
             self.cache_file.parent.mkdir(parents=True, exist_ok=True)
             with self._lock:
-                self.cache_file.write_text(json.dumps(self._names, indent=0, sort_keys=True))
+                self.cache_file.write_text(json.dumps(self._names, indent=0, sort_keys=True),
+                                           encoding="utf-8")
         except OSError:
             pass

@@ -11,23 +11,27 @@ import sys
 from pathlib import Path
 
 from .models import PathEvent, fmt_path
+from . import osutil
 from .store import History
 
 RESET, RED, GREEN, YELLOW, DIM = "\033[0m", "\033[91m", "\033[92m", "\033[93m", "\033[2m"
 
 
 def default_log_dir() -> Path:
-    base = os.environ.get("XDG_STATE_HOME", Path.home() / ".local" / "state")
-    return Path(base) / "bgpwatch"
+    return osutil.state_dir()
 
 
 class Alerter:
     def __init__(self, log_dir: Path | None = None, notify: bool = True, color: bool | None = None):
         self.log_dir = Path(log_dir or default_log_dir())
         self.log_dir.mkdir(parents=True, exist_ok=True)
-        self.color = sys.stdout.isatty() if color is None else color
+        if color is None:                       # ANSI colours: not in the old Windows console
+            color = sys.stdout.isatty() and (not osutil.IS_WINDOWS or bool(
+                os.environ.get("WT_SESSION") or os.environ.get("TERM")))
+        self.color = color
         self.notify_cmd = shutil.which("notify-send")      # None: not installed
         self.notify_enabled = notify                       # --no-notify / the GUI switch
+        self.notifier = None                               # callable(title, body), e.g. the tray's balloon
 
         self.log = logging.getLogger("bgpwatch")
         self.log.setLevel(logging.INFO)
@@ -76,8 +80,21 @@ class Alerter:
                 self.desktop(f"BGP path change: {ev.target}",
                              f"{fmt_path(ev.old_path)}\n→ {fmt_path(ev.new_path)}")
 
+    @property
+    def can_notify(self) -> bool:
+        """Is there any way to show a desktop notification (notify-send, or the tray on Windows)?"""
+        return bool(self.notifier or self.notify_cmd)
+
     def desktop(self, title: str, body: str):
-        if not (self.notify_enabled and self.notify_cmd):
+        if not self.notify_enabled:
+            return
+        if self.notifier:
+            try:
+                self.notifier(title, body)
+            except Exception:
+                pass
+            return
+        if not self.notify_cmd:
             return
         try:
             subprocess.Popen([self.notify_cmd, "-u", "critical", "-a", "BGP LookingGlass",
