@@ -114,7 +114,7 @@ command line use `--mode peer --vantage RRC00/193.0.0.56`.
   shows `streams live · updates · last update`. Not available in `--demo`.
   Very unstable prefixes can flap many times a minute - use `--confirm N` to
   require a new path to hold for N checks before alerting.
-- **Theme** (top right, 30 light/dark themes with ttkbootstrap; a 🌙 dark toggle otherwise). **Save list…** writes the targets to a text
+- **Theme** (top right: 30 themes, half of them dark). **Save list…** writes the targets to a text
   file that **Load file…** can read back. Targets, rules, mutes and the theme
   are restored on the next start (`--no-restore` to skip).
 - `--minimized` starts the window minimised.
