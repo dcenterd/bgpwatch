@@ -328,7 +328,7 @@ class BGPWatchApp:
         nb.add(tabf, text="  Paths table  ")
         cols = ("role", "collector", "peer", "peer_as", "location", "prefix", "path")
         self.tv_paths = ttk.Treeview(tabf, columns=cols, show="headings")
-        for col, w, txt in (("role", 90, "Role"), ("collector", 70, "Collector"),
+        for col, w, txt in (("role", 110, "Role"), ("collector", 70, "Collector"),
                             ("peer", 150, "Peer IP"), ("peer_as", 80, "Peer AS"),
                             ("location", 140, "Location"), ("prefix", 120, "Prefix"),
                             ("path", 420, "AS path")):
@@ -629,15 +629,14 @@ class BGPWatchApp:
         self.header.configure(
             text=f"Target: {v.target}    │  Prefix: {v.prefix or '-'}    │  Origin: "
                  f"{'AS%s' % origin if origin else '-'} {('(' + oname + ')') if oname else ''}    "
-                 f"│  {('RPKI: ' + RPKI_SHORT.get(v.rpki, v.rpki) + '    │  ') if v.rpki and v.status != 'rpki' else ''}"
-                 f"Last poll: {poll}    │  {status}",
+                 f"│  Last poll: {poll}    │  {status}",
             bg=HEADER_BG.get(v.status, "#eee"), fg=HEADER_FG.get(v.status, "#333"))
         line2 = f"Best path [{v.best_label}]:  {fmt_path(v.best_path)}"
         if v.changed and v.previous_path:
             when = v.changed_at.strftime("%H:%M:%S") if v.changed_at else ""
             line2 += f"\nPrevious (until {when}):  {fmt_path(v.previous_path)}"
-        if v.rpki_detail:
-            line2 += f"\nRPKI: {v.rpki_detail}"
+        if v.rpki:
+            line2 += f"\nRPKI {RPKI_SHORT.get(v.rpki, v.rpki)}" + (f": {v.rpki_detail}" if v.rpki_detail else "")
         rules = self.monitor.rules.get(v.target)
         if rules:
             line2 += f"\nRules [{rules.describe()}]:  " + \
