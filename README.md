@@ -45,28 +45,30 @@ target is flagged `RPKI INVALID`:
 
 ## Install & run (Ubuntu / Debian)
 
-The window uses **ttkbootstrap** when it is installed (themes, round toggles, coloured
-buttons; pick a theme top right). `main.py` automatically uses the project's `.venv`
-if there is one:
-
 ```bash
+sudo apt install python3-tk python3-venv git      # Tkinter + venv, if not installed
+git clone https://github.com/dcenterd/bgpwatch.git && cd bgpwatch
 python3 -m venv --system-site-packages .venv && .venv/bin/pip install -r requirements.txt
-```
-
-Without it the app still works with the plain Tk look and a simple dark/light toggle.
-
-
-```bash
-sudo apt install python3-tk          # Tkinter, if not installed
-unzip bgpwatch.zip && cd bgpwatch
 ./main.py --ips 8.8.8.8,1.1.1.1      # or just ./main.py and add IPs in the window
 ```
+
+`main.py` automatically uses the project's `.venv` if there is one. The optional packages in
+`requirements.txt` add: **ttkbootstrap** (themes, round toggles, coloured buttons), **Pillow**
+(the logo) and **pystray** (the router icon in the system tray). Without them the app still works,
+with the plain Tk look, a text title and no tray icon.
+
+On GNOME the tray icon needs the AppIndicator support that Ubuntu ships
+(`gir1.2-ayatanaappindicator3-0.1`); on other desktops any StatusNotifier-capable tray works.
+Desktop notifications use `notify-send` (`libnotify-bin`) and the alert sound uses
+`pw-play`, `paplay` or `aplay`.
 
 Try it without waiting for a real BGP event (simulated data, a change every 3 polls):
 
 ```bash
-./main.py --demo --ips 8.8.8.8,1.1.1.1,9.9.9.9 --interval 10
+./main.py --demo --ips 8.8.8.8,8.8.4.4,1.1.1.1 --interval 10
 ```
+
+(`8.8.4.4` is deliberately shown as an RPKI-invalid hijack in demo mode.)
 
 Fedora: `sudo dnf install python3-tkinter` · Arch: `sudo pacman -S tk`
 
