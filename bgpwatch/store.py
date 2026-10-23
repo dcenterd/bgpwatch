@@ -66,6 +66,14 @@ class History:
                                  [(tuple(p), n) for p, n in json.loads(snap or "[]")]))
         return out
 
+    def close(self):
+        """Release the database file (Windows cannot delete or move a file that is still open)."""
+        with self._lock:
+            try:
+                self._db.close()
+            except sqlite3.Error:
+                pass
+
     def clear(self, target: Optional[str] = None):
         with self._lock:
             if target:

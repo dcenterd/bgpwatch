@@ -80,6 +80,13 @@ class Alerter:
                 self.desktop(f"BGP path change: {ev.target}",
                              f"{fmt_path(ev.old_path)}\n→ {fmt_path(ev.new_path)}")
 
+    def close(self):
+        """Close the history database and the log file handlers (called when the app quits)."""
+        self.history.close()
+        for h in list(self.log.handlers):
+            h.close()
+            self.log.removeHandler(h)
+
     @property
     def can_notify(self) -> bool:
         """Is there any way to show a desktop notification (notify-send, or the tray on Windows)?"""

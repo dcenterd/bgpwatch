@@ -33,7 +33,7 @@ class NotifyTests(unittest.TestCase):
         a = self.make()
         a.notify_enabled = False                           # what the GUI switch does
         self.assertEqual(self.sent(a, alert()), 0)
-        self.assertIn("BEST-CHANGED", (a.log_dir / "events.jsonl").read_text().upper().replace("_", "-"))
+        self.assertIn("BEST-CHANGED", (a.log_dir / "events.jsonl").read_text(encoding="utf-8").upper().replace("_", "-"))
         a.notify_enabled = True                            # and back on
         self.assertEqual(self.sent(a, alert()), 1)
 

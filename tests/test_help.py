@@ -39,7 +39,7 @@ class HelpTests(unittest.TestCase):
 
     def test_every_command_line_option_is_documented(self):
         import re
-        src = (Path(__file__).resolve().parents[1] / "main.py").read_text()
+        src = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
         flags = re.findall(r'add_argument\("(--[a-z-]+)"', src)
         documented = " ".join(n for g, n, *_ in hd.PARAMS if g == "Command line")
         self.assertGreater(len(flags), 10)
@@ -48,7 +48,7 @@ class HelpTests(unittest.TestCase):
 
     def test_every_saved_setting_is_documented(self):
         import re
-        src = (Path(__file__).resolve().parents[1] / "bgpwatch" / "gui.py").read_text()
+        src = (Path(__file__).resolve().parents[1] / "bgpwatch" / "gui.py").read_text(encoding="utf-8")
         keys = set(re.findall(r'\bd\["([a-z_]+)"\] =', src))
         text = " ".join(n for g, n, *_ in hd.PARAMS if g.startswith("Saved settings"))
         for k in keys:

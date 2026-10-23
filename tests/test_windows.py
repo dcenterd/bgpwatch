@@ -38,6 +38,17 @@ class PathTests(unittest.TestCase):
         self.assertEqual(osutil.mono_font(False), "monospace")
 
 
+class CloseTests(unittest.TestCase):
+    def test_closing_releases_the_files_so_the_folder_can_be_deleted(self):
+        import shutil
+        d = Path(tempfile.mkdtemp())
+        a = Alerter(d, notify=False, color=False)
+        a.handle(PathEvent("BEST_CHANGED", "8.8.8.8", "8.8.8.0/24", "x", (1, 2), (1, 3)))
+        a.close()
+        shutil.rmtree(d)                                    # PermissionError on Windows if still open
+        self.assertFalse(d.exists())
+
+
 class ConsoleTests(unittest.TestCase):
     def test_no_console_gets_a_null_stream(self):         # a windowed .exe has sys.stdout = None
         with mock.patch.object(sys, "stdout", None), mock.patch.object(sys, "stderr", None):

@@ -1357,4 +1357,5 @@ class BGPWatchApp:
             self.live.close()
         self.monitor.shutdown()
         self.names.save()
+        self.alerter.close()
         self.root.destroy()

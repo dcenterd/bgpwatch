@@ -96,6 +96,7 @@ class StoreTests(unittest.TestCase):
             self.assertEqual(len(h.query()), 2)
             h.clear("8.8.8.8")
             self.assertEqual(len(h.query()), 1)
+            h.close()                                  # Windows cannot delete an open database
 
     def test_settings(self):
         with tempfile.TemporaryDirectory() as d:
