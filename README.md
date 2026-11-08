@@ -151,11 +151,33 @@ command line use `--mode peer --vantage RRC00/193.0.0.56`.
   shows `streams live · updates · last update`. Not available in `--demo`.
   Very unstable prefixes can flap many times a minute - use `--confirm N` to
   require a new path to hold for N checks before alerting.
+- **📨 Messenger…** pushes every alert (path change, rule violation, RPKI invalid) to your
+  phone - see [Messenger notifications](#messenger-notifications-telegram-discord-slack-ntfy).
 - **Theme** (top right): 30 themes, half of them dark. The **🌙 Dark** switch next to it flips the
   current theme to its dark or light twin (e.g. `nord-light` ↔ `nord-dark`).
 - **Save list…** writes the targets to a text file that **Load file…** can read back. Targets, rules,
   mutes and the theme are restored on the next start (`--no-restore` to skip).
 - `--minimized` starts the window minimised.
+
+### Messenger notifications (Telegram, Discord, Slack, ntfy)
+
+Click **📨 Messenger…** next to the *desktop notifications* switch, tick *Enable*, choose a service
+and press **Send test**. It works on Windows and Linux, independently of the desktop notifications
+and the sound. Alerts of muted targets are not sent.
+
+| Service | What you enter |
+|---|---|
+| Telegram | Bot token (create a bot with [@BotFather](https://t.me/BotFather)), and your chat ID. Send the bot a message first, then read the ID from `https://api.telegram.org/bot<token>/getUpdates` or ask @userinfobot. |
+| Webhook | A Discord (`discord.com/api/webhooks/...`) or Slack (`hooks.slack.com/...`) webhook URL, or an [ntfy.sh](https://ntfy.sh) topic URL. Any other URL receives the alert as a plain-text POST. |
+
+**Proxy (optional)** - for networks where Telegram or the webhook host is blocked or must go through
+a gateway. Enter `http://host:port`, `https://host:port` or `socks5://host:port`; leave it empty for a
+direct connection. If the proxy needs a login, fill in *Proxy user* and *Proxy password* (or write
+`socks5://user:pass@host:1080`). With SOCKS5 the proxy resolves the host name. *Send test* goes
+through the proxy, so you can verify the setup. The system proxy variables are not used.
+
+The token, webhook URL and proxy password are saved in plain text in `settings.json`
+(key `messenger`) - keep that file private.
 
 ### Help
 
@@ -241,7 +263,8 @@ bgpwatch/helpdata.py    help texts, diagram layout, import matrix
 bgpwatch/live.py        RIS Live stream -> in-memory routing table
 bgpwatch/rules.py       expected-path rules
 bgpwatch/store.py       history (SQLite) + saved settings
-bgpwatch/dialogs.py     rules dialog
+bgpwatch/dialogs.py     rules + messenger dialogs
+bgpwatch/messenger.py   Telegram / webhook push, HTTP + SOCKS5 proxy
 bgpwatch/sound.py       3-beep alert sound
 bgpwatch/alerts.py      console colours, log files, JSON events, notify-send
 bgpwatch/asnames.py     AS-name lookup + cache
