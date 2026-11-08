@@ -41,3 +41,85 @@ class MessengerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ProxyTests(unittest.TestCase):
+    """Real sockets on localhost: a fake HTTP proxy and a fake SOCKS5 proxy."""
+
+    def serve(self, handler):
+        import socketserver
+        import threading
+
+        class S(socketserver.ThreadingTCPServer):
+            allow_reuse_address = True
+            daemon_threads = True
+        srv = S(("127.0.0.1", 0), handler)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        self.addCleanup(srv.server_close)
+        self.addCleanup(srv.shutdown)
+        return srv.server_address[1]
+
+    def test_http_proxy_with_and_without_auth(self):
+        import base64
+        import http.server
+        seen = []
+
+        class H(http.server.BaseHTTPRequestHandler):
+            def do_POST(self):
+                seen.append((self.path, self.headers.get("Proxy-Authorization")))
+                self.rfile.read(int(self.headers.get("Content-Length", 0)))
+                self.send_response(200)
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+
+            def log_message(self, *a):
+                pass
+        port = self.serve(H)
+        cfg = {"kind": "webhook", "url": "http://hook.example/x", "proxy": f"127.0.0.1:{port}"}
+        self.assertIsNone(messenger.send(cfg, "t", "b"))
+        self.assertEqual(seen[-1], ("http://hook.example/x", None))
+        cfg.update(proxy_user="bob", proxy_pass="p@ss")
+        self.assertIsNone(messenger.send(cfg, "t", "b"))
+        token = base64.b64encode(b"bob:p@ss").decode()
+        self.assertEqual(seen[-1][1], "Basic " + token)
+
+    def test_socks5_with_and_without_auth(self):
+        import socketserver
+        seen = []
+
+        class H(socketserver.BaseRequestHandler):
+            def handle(self):
+                r = self.request
+                r.recv(1)
+                n = r.recv(1)[0]
+                methods = r.recv(n)
+                user = None
+                if 2 in methods:
+                    r.sendall(b"\x05\x02")
+                    r.recv(1)
+                    u = r.recv(r.recv(1)[0]).decode()
+                    p = r.recv(r.recv(1)[0]).decode()
+                    r.sendall(b"\x01\x00")
+                    user = (u, p)
+                else:
+                    r.sendall(b"\x05\x00")
+                r.recv(4)
+                host = r.recv(r.recv(1)[0]).decode()
+                r.recv(2)
+                seen.append((user, host))
+                r.sendall(b"\x05\x00\x00\x01\x00\x00\x00\x00\x00\x00")
+                r.recv(65536)
+                r.sendall(b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
+        port = self.serve(H)
+        cfg = {"kind": "webhook", "url": "http://hook.example/x", "proxy": f"socks5://127.0.0.1:{port}"}
+        self.assertIsNone(messenger.send(cfg, "t", "b"))
+        self.assertEqual(seen[-1], (None, "hook.example"))
+        cfg.update(proxy_user="bob", proxy_pass="pw")
+        self.assertIsNone(messenger.send(cfg, "t", "b"))
+        self.assertEqual(seen[-1], (("bob", "pw"), "hook.example"))
+
+    def test_bad_proxy_and_dead_proxy(self):
+        self.assertIn("proxy must", messenger.send(
+            {"kind": "webhook", "url": "http://h/x", "proxy": "ftp://x:1"}, "t", "b"))
+        self.assertIsNotNone(messenger.send(
+            {"kind": "webhook", "url": "http://h/x", "proxy": "127.0.0.1:9"}, "t", "b", timeout=2))

@@ -101,13 +101,25 @@ def edit_messenger(parent, cfg: dict):
                 lb.grid(); en.grid()
     v_kind.trace_add("write", layout)
     layout()
+    v_px, v_pu, v_pp = (tk.StringVar(value=cfg[k]) for k in ("proxy", "proxy_user", "proxy_pass"))
+    ttk.Label(frm, text="Proxy (optional):").grid(row=6, column=0, sticky="w", pady=(10, 3), padx=(0, 10))
+    ttk.Entry(frm, textvariable=v_px, width=46).grid(row=6, column=1, sticky="ew", pady=(10, 3))
+    ttk.Label(frm, text="   http://host:port  or  socks5://host:port - leave empty for a direct connection",
+              foreground="#777777").grid(row=7, column=0, columnspan=2, sticky="w")
+    ttk.Label(frm, text="Proxy user:").grid(row=8, column=0, sticky="w", pady=3)
+    ttk.Entry(frm, textvariable=v_pu, width=46).grid(row=8, column=1, sticky="ew")
+    ttk.Label(frm, text="Proxy password:").grid(row=9, column=0, sticky="w", pady=3)
+    ttk.Entry(frm, textvariable=v_pp, width=46, show="*").grid(row=9, column=1, sticky="ew")
+    ttk.Label(frm, text="   user / password only if the proxy needs a login",
+              foreground="#777777").grid(row=10, column=0, columnspan=2, sticky="w")
     status = ttk.Label(frm, text="", wraplength=420, justify="left")
-    status.grid(row=6, column=0, columnspan=2, sticky="w", pady=(8, 0))
+    status.grid(row=11, column=0, columnspan=2, sticky="w", pady=(8, 0))
     result = {}
 
     def current():
         return {"enabled": v_en.get(), "kind": v_kind.get(), "token": v_tok.get().strip(),
-                "chat_id": v_chat.get().strip(), "url": v_url.get().strip()}
+                "chat_id": v_chat.get().strip(), "url": v_url.get().strip(),
+                "proxy": v_px.get().strip(), "proxy_user": v_pu.get().strip(), "proxy_pass": v_pp.get()}
 
     def test():
         status.configure(text="Sending…")
@@ -120,7 +132,7 @@ def edit_messenger(parent, cfg: dict):
         win.destroy()
 
     bt = ttk.Frame(frm)
-    bt.grid(row=7, column=0, columnspan=2, sticky="e", pady=(12, 0))
+    bt.grid(row=12, column=0, columnspan=2, sticky="e", pady=(12, 0))
     ttk.Button(bt, text="Send test", command=test).pack(side="left", padx=4)
     ttk.Button(bt, text="Cancel", command=win.destroy).pack(side="left", padx=4)
     ttk.Button(bt, text="Save", command=ok).pack(side="left", padx=4)

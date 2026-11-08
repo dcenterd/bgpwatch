@@ -315,7 +315,7 @@ PARAMS = [
     ("Saved settings (settings.json in the log dir)", "animate, rpki, notify, hl_value, hl_unit", "true, true, true, 60, sec", "values",
      "Packet animation and the blue-path time."),
     ("Saved settings (settings.json in the log dir)", "messenger", "off", "object",
-     "Telegram / webhook push: enabled, kind, bot token, chat ID, URL (stored in plain text)."),
+     "Telegram / webhook push: enabled, kind, bot token, chat ID, URL, optional HTTP/SOCKS5 proxy with login (stored in plain text)."),
 ]
 
 
