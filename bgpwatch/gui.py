@@ -380,6 +380,8 @@ class BGPWatchApp:
                                command=self._toggle_notify, **self._bs("round-toggle"))
         cb_n.pack(side="left", padx=10)
         self.cb_notify = cb_n                              # enabled/disabled in _refresh_notify_state()
+        ttk.Button(top, text="📨 Messenger…", command=self._edit_messenger,
+                   **self._bs("secondary-outline")).pack(side="left", padx=4)
         ttk.Button(top, text="Clear", command=lambda: self.t_log.delete("1.0", "end"), **self._bs("secondary-outline")).pack(side="right")
         logbody = ttk.Frame(logf)
         logbody.pack(fill="both", expand=True)
@@ -748,6 +750,14 @@ class BGPWatchApp:
             self.alerter.notify_enabled = False
             self.cb_notify.state(["disabled"])
 
+    def _edit_messenger(self):
+        """Configure the Telegram / webhook push of alerts."""
+        from .dialogs import edit_messenger
+        cfg = edit_messenger(self.root, self.alerter.messenger.cfg)
+        if cfg is not None:
+            self.alerter.messenger.cfg = cfg
+            self._save_settings()
+
     def _toggle_notify(self):
         """Desktop pop-ups (notify-send; the tray balloon on Windows) on or off; the beeps and the logs are not affected."""
         self.alerter.notify_enabled = self.v_notify.get()
@@ -1000,6 +1010,7 @@ class BGPWatchApp:
         d["animate"] = bool(self.v_anim.get())
         d["rpki"] = bool(self.v_rpki.get())
         d["notify"] = bool(self.v_notify.get())
+        d["messenger"] = dict(self.alerter.messenger.cfg)
         d["hl_value"] = self._hl_number()
         d["hl_unit"] = self.v_hl_unit.get()
         if self.tb:

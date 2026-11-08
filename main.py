@@ -38,6 +38,7 @@ from bgpwatch.collectors import DemoCollector, RipeStatCollector
 from bgpwatch.engine import Monitor
 from bgpwatch.rpki import DemoRpki, RpkiChecker
 from bgpwatch.rules import Rules
+from bgpwatch.messenger import Messenger
 from bgpwatch.store import Settings
 
 
@@ -106,6 +107,7 @@ def main(argv=None):
         for t, d in settings.data.get("rules", {}).items():
             monitor.rules[t] = Rules.from_dict(d)
     alerter.muted = set(settings.data.get("muted", []))
+    alerter.messenger = Messenger(settings.data.get("messenger"))
     for t in targets:
         monitor.add_target(t)
 

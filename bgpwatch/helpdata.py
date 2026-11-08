@@ -32,6 +32,8 @@ MODULE_INFO = {
               "paths so the map can be replayed); Settings saves targets, rules, mutes, theme."),
     "alerts": ("alerts.py", "What happens when an event occurs: console text, rotating log file, "
                "events.jsonl, desktop notification (notify-send) and a row in the history database."),
+    "messenger": ("messenger.py", "Pushes alerts to your phone: a Telegram bot, or a Discord / Slack / ntfy webhook. "
+                  "Sends from a background thread; configured in the 📨 Messenger… dialog."),
     "sound": ("sound.py", "Generates and plays the three-beep alert (pw-play / paplay / aplay, "
               "or the Tk bell as a fallback)."),
     "rpki": ("rpki.py", "RPKI origin validation: asks RIPEstat whether a signed ROA authorises the "
@@ -57,7 +59,7 @@ EXTERNAL_INFO = {
 }
 
 # order used for the matrix rows/columns (readers first, foundations last)
-ORDER = ["main", "gui", "helpview", "helpdata", "dialogs", "alerts", "engine", "live", "collectors",
+ORDER = ["main", "gui", "helpview", "helpdata", "dialogs", "alerts", "messenger", "engine", "live", "collectors",
          "store", "rules", "layout", "theme", "sound", "tray", "osutil", "rpki", "asnames", "targets", "models"]
 
 
@@ -120,6 +122,7 @@ BOXES = {
     "helpdata":     (790, 564, 145, 50, "helpdata.py", "texts · diagram · matrix", "ui"),
     "alerts":       (30, 590, 170, 56, "alerts.py", "console · logs · notify", "out"),
     "store":        (230, 590, 170, 56, "store.py", "history · settings", "out"),
+    "messenger":    (960, 504, 130, 50, "messenger.py", "Telegram · webhook", "out"),
     "sound":        (430, 590, 140, 56, "sound.py", "3-beep alert", "out"),
     "tray":         (600, 624, 130, 50, "tray.py", "router tray icon", "ui"),
     "osutil":       (790, 444, 145, 50, "osutil.py", "Windows / Linux paths", "core"),
@@ -159,6 +162,7 @@ EDGES = [
     ("alerts", "ext_disk", "log files", False),
     ("store", "ext_disk", "SQLite · JSON", False),
     ("alerts", "ext_desktop", "notify-send", False),
+    ("alerts", "messenger", "push", False),
     ("sound", "ext_desktop", "audio", False),
 ]
 KIND_NAMES = {"ext": "outside world", "thread": "worker thread", "core": "logic",
@@ -310,6 +314,8 @@ PARAMS = [
      "Global mute, theme and live-feed choice."),
     ("Saved settings (settings.json in the log dir)", "animate, rpki, notify, hl_value, hl_unit", "true, true, true, 60, sec", "values",
      "Packet animation and the blue-path time."),
+    ("Saved settings (settings.json in the log dir)", "messenger", "off", "object",
+     "Telegram / webhook push: enabled, kind, bot token, chat ID, URL (stored in plain text)."),
 ]
 
 

@@ -12,6 +12,7 @@ from pathlib import Path
 
 from .models import PathEvent, fmt_path
 from . import osutil
+from .messenger import Messenger
 from .store import History
 
 RESET, RED, GREEN, YELLOW, DIM = "\033[0m", "\033[91m", "\033[92m", "\033[93m", "\033[2m"
@@ -44,6 +45,7 @@ class Alerter:
             self.log.addHandler(fh)
         self.events_file = self.log_dir / "events.jsonl"
         self.history = History(self.log_dir / "history.db")
+        self.messenger = Messenger()     # Telegram / webhook push, configured in the GUI
         self.muted: set = set()          # targets whose alerts make no sound / notification
 
     def _console(self, text: str, color: str = ""):
@@ -72,13 +74,14 @@ class Alerter:
             pass
         if ev.severity == "alert" and ev.target not in self.muted:
             if ev.kind == "RPKI_INVALID":
-                self.desktop(f"RPKI INVALID: {ev.target}", f"{ev.detail}\n{fmt_path(ev.new_path)}")
+                title, body = f"RPKI INVALID: {ev.target}", f"{ev.detail}\n{fmt_path(ev.new_path)}"
             elif ev.kind == "RULE_VIOLATION":
-                self.desktop(f"BGP rule violated: {ev.target}",
-                             f"{ev.detail}\n{fmt_path(ev.new_path)}")
+                title, body = f"BGP rule violated: {ev.target}", f"{ev.detail}\n{fmt_path(ev.new_path)}"
             else:
-                self.desktop(f"BGP path change: {ev.target}",
-                             f"{fmt_path(ev.old_path)}\n→ {fmt_path(ev.new_path)}")
+                title, body = (f"BGP path change: {ev.target}",
+                               f"{fmt_path(ev.old_path)}\n→ {fmt_path(ev.new_path)}")
+            self.desktop(title, body)
+            self.messenger.notify(title, body)
 
     def close(self):
         """Close the history database and the log file handlers (called when the app quits)."""
