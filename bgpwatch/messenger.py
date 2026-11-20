@@ -1,4 +1,4 @@
-"""Push alerts to a chat messenger: Telegram bot, or a webhook (Discord / Slack / ntfy / generic)."""
+"""Push alerts to a chat messenger: Telegram or Bale bot, or a webhook (Discord / Slack / ntfy / bot URL / generic)."""
 from __future__ import annotations
 
 import functools
@@ -12,7 +12,11 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-KINDS = ("telegram", "webhook")
+KINDS = ("telegram", "bale", "webhook")
+
+# Bot-API hosts that take {"chat_id", "text"} as JSON at /bot<token>/sendMessage (Bale mirrors Telegram's API).
+BOT_API = {"telegram": "https://api.telegram.org", "bale": "https://tapi.bale.ai"}
+_BOT_HOSTS = {"api.telegram.org": "telegram", "tapi.bale.ai": "bale"}
 
 
 def default_config() -> dict:
@@ -20,13 +24,54 @@ def default_config() -> dict:
             "proxy": "", "proxy_user": "", "proxy_pass": ""}
 
 
+def normalize_url(url: str) -> str:
+    """Trim the URL and add https:// when the scheme was left out (e.g. 'ntfy.sh/topic')."""
+    url = (url or "").strip()
+    if url and "://" not in url:
+        url = "https://" + url
+    return url
+
+
+def _bot_request(base: str, token: str, chat: str, text: str) -> urllib.request.Request:
+    if not token or not chat:
+        raise ValueError("bot needs a token and a chat ID")
+    data = json.dumps({"chat_id": chat, "text": text[:4000],
+                       "disable_web_page_preview": True}).encode()
+    req = urllib.request.Request(f"{base}/bot{token}/sendMessage", data=data, method="POST")
+    req.add_header("Content-Type", "application/json")
+    return req
+
+
+def _bot_webhook(url: str, cfg: dict, text: str) -> urllib.request.Request | None:
+    """A Telegram / Bale bot-API URL pasted as the webhook, e.g.
+    https://api.telegram.org/bot<token>/sendMessage?chat_id=123  -> a proper sendMessage call.
+    The chat ID comes from the URL's chat_id parameter, else from the Chat ID field."""
+    u = urllib.parse.urlsplit(url)
+    if (u.hostname or "").lower() not in _BOT_HOSTS:
+        return None
+    first = u.path.lstrip("/").split("/", 1)[0]
+    if not first.startswith("bot") or len(first) <= 3:
+        raise ValueError("bot webhook URL must look like https://api.telegram.org/bot<token>/sendMessage?chat_id=<id>")
+    token = urllib.parse.unquote(first[3:])
+    chat = (urllib.parse.parse_qs(u.query).get("chat_id") or [""])[0].strip() \
+        or str(cfg.get("chat_id") or "").strip()
+    if not chat:
+        raise ValueError("bot webhook needs a chat ID: add ?chat_id=<id> to the URL or fill in Chat ID")
+    return _bot_request(f"{u.scheme}://{u.netloc}", token, chat, text)
+
+
 def build_request(cfg: dict, title: str, body: str) -> urllib.request.Request:
     """Build the HTTP request for one message. Raises ValueError when the config is incomplete."""
     text = f"{title}\n{body}".strip()
-    if cfg.get("kind") == "webhook":
-        url = (cfg.get("url") or "").strip()
-        if not url.startswith(("http://", "https://")):
-            raise ValueError("webhook URL must start with http:// or https://")
+    kind = cfg.get("kind") or "telegram"
+    if kind == "webhook":
+        url = normalize_url(cfg.get("url"))
+        u = urllib.parse.urlsplit(url)
+        if u.scheme not in ("http", "https") or not u.hostname:
+            raise ValueError("webhook URL must look like https://host/path")
+        bot = _bot_webhook(url, cfg, text)
+        if bot is not None:
+            return bot
         if "discord.com/api/webhooks" in url:
             data, ctype = json.dumps({"content": text[:2000]}).encode(), "application/json"
         elif "hooks.slack.com" in url:
@@ -39,15 +84,12 @@ def build_request(cfg: dict, title: str, body: str) -> urllib.request.Request:
         req = urllib.request.Request(url, data=data, method="POST")
         req.add_header("Content-Type", ctype)
         return req
+    if kind not in BOT_API:
+        raise ValueError(f"unknown messenger service: {kind}")
     token, chat = (cfg.get("token") or "").strip(), str(cfg.get("chat_id") or "").strip()
     if not token or not chat:
-        raise ValueError("Telegram needs a bot token and a chat ID")
-    data = json.dumps({"chat_id": chat, "text": text[:4000],
-                       "disable_web_page_preview": True}).encode()
-    req = urllib.request.Request(f"https://api.telegram.org/bot{token}/sendMessage",
-                                 data=data, method="POST")
-    req.add_header("Content-Type", "application/json")
-    return req
+        raise ValueError(f"{kind.capitalize()} needs a bot token and a chat ID")
+    return _bot_request(BOT_API[kind], token, chat, text)
 
 
 def _socks5_connect(proxy, host, port, timeout):
@@ -140,7 +182,12 @@ def send(cfg: dict, title: str, body: str, timeout: float = 10) -> str | None:
     except ValueError as e:
         return str(e)
     except urllib.error.HTTPError as e:
-        return f"HTTP {e.code}: {e.reason}"
+        detail = ""
+        try:                                     # Telegram / Bale explain the failure in a JSON body
+            detail = json.loads(e.read(4096) or b"{}").get("description") or ""
+        except (ValueError, AttributeError, OSError):
+            pass
+        return f"HTTP {e.code}: {detail or e.reason}"
     except (urllib.error.URLError, OSError, ssl.SSLError) as e:
         return str(getattr(e, "reason", e))
 

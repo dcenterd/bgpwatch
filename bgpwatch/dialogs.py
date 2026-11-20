@@ -61,7 +61,7 @@ def edit_rules(parent, target: str, current: Rules | None, n_targets: int = 1):
 
 
 def edit_messenger(parent, cfg: dict):
-    """Modal dialog for the Telegram / webhook push. Returns the new config dict, or None if cancelled."""
+    """Modal dialog for the Telegram / Bale / webhook push. Returns the new config dict, or None if cancelled."""
     cfg = {**messenger.default_config(), **cfg}
     win = tk.Toplevel(parent)
     win.title("Messenger notifications")
@@ -73,7 +73,9 @@ def edit_messenger(parent, cfg: dict):
         "Send every path-change / rule / RPKI alert to your phone.\n"
         "Telegram: create a bot with @BotFather, send it a message, then get your chat ID\n"
         "(e.g. from @userinfobot, or https://api.telegram.org/bot<token>/getUpdates).\n"
-        "Webhook: a Discord or Slack webhook URL, or an ntfy.sh topic URL.")
+        "Bale: the same, with a bot from @botfather in Bale (chat ID via tapi.bale.ai/bot<token>/getUpdates).\n"
+        "Webhook: a Discord / Slack / ntfy.sh URL, or a bot URL such as\n"
+        "https://api.telegram.org/bot<token>/sendMessage?chat_id=<id>  (tapi.bale.ai works too).")
     ).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))
     v_en = tk.BooleanVar(value=bool(cfg["enabled"]))
     v_kind = tk.StringVar(value=cfg["kind"])
@@ -93,12 +95,14 @@ def edit_messenger(parent, cfg: dict):
         rows[label] = (lb, en)
 
     def layout(*_):
-        tg = v_kind.get() == "telegram"
+        hook = v_kind.get() == "webhook"
+        shown = {"Webhook URL", "Chat ID"} if hook else {"Bot token", "Chat ID"}
+        rows["Chat ID"][0].configure(text="Chat ID (optional):" if hook else "Chat ID:")
         for label, (lb, en) in rows.items():
-            if (label == "Webhook URL") == tg:
-                lb.grid_remove(); en.grid_remove()
-            else:
+            if label in shown:
                 lb.grid(); en.grid()
+            else:
+                lb.grid_remove(); en.grid_remove()
     v_kind.trace_add("write", layout)
     layout()
     v_px, v_pu, v_pp = (tk.StringVar(value=cfg[k]) for k in ("proxy", "proxy_user", "proxy_pass"))
@@ -118,7 +122,7 @@ def edit_messenger(parent, cfg: dict):
 
     def current():
         return {"enabled": v_en.get(), "kind": v_kind.get(), "token": v_tok.get().strip(),
-                "chat_id": v_chat.get().strip(), "url": v_url.get().strip(),
+                "chat_id": v_chat.get().strip(), "url": messenger.normalize_url(v_url.get()),
                 "proxy": v_px.get().strip(), "proxy_user": v_pu.get().strip(), "proxy_pass": v_pp.get()}
 
     def test():

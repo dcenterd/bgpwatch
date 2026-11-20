@@ -152,14 +152,14 @@ command line use `--mode peer --vantage RRC00/193.0.0.56`.
   Very unstable prefixes can flap many times a minute - use `--confirm N` to
   require a new path to hold for N checks before alerting.
 - **📨 Messenger…** pushes every alert (path change, rule violation, RPKI invalid) to your
-  phone - see [Messenger notifications](#messenger-notifications-telegram-discord-slack-ntfy).
+  phone - see [Messenger notifications](#messenger-notifications-telegram-bale-discord-slack-ntfy).
 - **Theme** (top right): 30 themes, half of them dark. The **🌙 Dark** switch next to it flips the
   current theme to its dark or light twin (e.g. `nord-light` ↔ `nord-dark`).
 - **Save list…** writes the targets to a text file that **Load file…** can read back. Targets, rules,
   mutes and the theme are restored on the next start (`--no-restore` to skip).
 - `--minimized` starts the window minimised.
 
-### Messenger notifications (Telegram, Discord, Slack, ntfy)
+### Messenger notifications (Telegram, Bale, Discord, Slack, ntfy)
 
 Click **📨 Messenger…** next to the *desktop notifications* switch, tick *Enable*, choose a service
 and press **Send test**. It works on Windows and Linux, independently of the desktop notifications
@@ -168,7 +168,8 @@ and the sound. Alerts of muted targets are not sent.
 | Service | What you enter |
 |---|---|
 | Telegram | Bot token (create a bot with [@BotFather](https://t.me/BotFather)), and your chat ID. Send the bot a message first, then read the ID from `https://api.telegram.org/bot<token>/getUpdates` or ask @userinfobot. |
-| Webhook | A Discord (`discord.com/api/webhooks/...`) or Slack (`hooks.slack.com/...`) webhook URL, or an [ntfy.sh](https://ntfy.sh) topic URL. Any other URL receives the alert as a plain-text POST. |
+| Bale | Same as Telegram, with a bot made by @botfather inside [Bale](https://bale.ai); messages go to `https://tapi.bale.ai/bot<token>/sendMessage`. Get the chat ID from `https://tapi.bale.ai/bot<token>/getUpdates`. |
+| Webhook | A Discord (`discord.com/api/webhooks/...`) or Slack (`hooks.slack.com/...`) webhook URL, an [ntfy.sh](https://ntfy.sh) topic URL, or a Telegram / Bale bot URL such as `https://api.telegram.org/bot<token>/sendMessage?chat_id=<id>` (or `tapi.bale.ai/...`; the chat ID can also go in the *Chat ID* field). `https://` is added when the URL has no scheme. Any other URL receives the alert as a plain-text POST. |
 
 **Proxy (optional)** - for networks where Telegram or the webhook host is blocked or must go through
 a gateway. Enter `http://host:port`, `https://host:port` or `socks5://host:port`; leave it empty for a
@@ -264,7 +265,7 @@ bgpwatch/live.py        RIS Live stream -> in-memory routing table
 bgpwatch/rules.py       expected-path rules
 bgpwatch/store.py       history (SQLite) + saved settings
 bgpwatch/dialogs.py     rules + messenger dialogs
-bgpwatch/messenger.py   Telegram / webhook push, HTTP + SOCKS5 proxy
+bgpwatch/messenger.py   Telegram / Bale / webhook push, HTTP + SOCKS5 proxy
 bgpwatch/sound.py       3-beep alert sound
 bgpwatch/alerts.py      console colours, log files, JSON events, notify-send
 bgpwatch/asnames.py     AS-name lookup + cache

@@ -32,7 +32,7 @@ MODULE_INFO = {
               "paths so the map can be replayed); Settings saves targets, rules, mutes, theme."),
     "alerts": ("alerts.py", "What happens when an event occurs: console text, rotating log file, "
                "events.jsonl, desktop notification (notify-send) and a row in the history database."),
-    "messenger": ("messenger.py", "Pushes alerts to your phone: a Telegram bot, or a Discord / Slack / ntfy webhook. "
+    "messenger": ("messenger.py", "Pushes alerts to your phone: a Telegram or Bale bot, or a Discord / Slack / ntfy / bot-URL webhook. "
                   "Sends from a background thread; configured in the 📨 Messenger… dialog."),
     "sound": ("sound.py", "Generates and plays the three-beep alert (pw-play / paplay / aplay, "
               "or the Tk bell as a fallback)."),
@@ -122,7 +122,7 @@ BOXES = {
     "helpdata":     (790, 564, 145, 50, "helpdata.py", "texts · diagram · matrix", "ui"),
     "alerts":       (30, 590, 170, 56, "alerts.py", "console · logs · notify", "out"),
     "store":        (230, 590, 170, 56, "store.py", "history · settings", "out"),
-    "messenger":    (960, 504, 130, 50, "messenger.py", "Telegram · webhook", "out"),
+    "messenger":    (960, 504, 130, 50, "messenger.py", "Telegram · Bale · webhook", "out"),
     "sound":        (430, 590, 140, 56, "sound.py", "3-beep alert", "out"),
     "tray":         (600, 624, 130, 50, "tray.py", "router tray icon", "ui"),
     "osutil":       (790, 444, 145, 50, "osutil.py", "Windows / Linux paths", "core"),
@@ -315,7 +315,7 @@ PARAMS = [
     ("Saved settings (settings.json in the log dir)", "animate, rpki, notify, hl_value, hl_unit", "true, true, true, 60, sec", "values",
      "Packet animation and the blue-path time."),
     ("Saved settings (settings.json in the log dir)", "messenger", "off", "object",
-     "Telegram / webhook push: enabled, kind, bot token, chat ID, URL, optional HTTP/SOCKS5 proxy with login (stored in plain text)."),
+     "Telegram / Bale / webhook push: enabled, kind, bot token, chat ID, URL, optional HTTP/SOCKS5 proxy with login (stored in plain text)."),
 ]
 
 
